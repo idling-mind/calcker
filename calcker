@@ -2,7 +2,7 @@
 # Convert Units
 # Written by Najeem Muhammed
 from __future__ import division
-import pygtk as gtk
+import gtk
 import math
 import pango
 
