@@ -1,0 +1,175 @@
+#!/usr/bin/python
+# Convert Units
+# Written by Najeem Muhammed
+from __future__ import division
+import pygtk as gtk
+import math
+import pango
+
+
+subs = [
+	["pi","math.pi"]
+]
+class calcker(gtk.Window):
+    def __init__(self):
+        # Window settings
+        super(calcker, self).__init__()
+        self.connect("destroy",gtk.main_quit)
+        self.set_position(gtk.WIN_POS_CENTER)
+        self.set_title("Calcker")
+        self.set_resizable(False)
+        self.stick()
+        self.historycount = 0
+
+        windowicon = self.render_icon(gtk.STOCK_CONVERT, gtk.ICON_SIZE_MENU)
+        self.set_icon(windowicon)
+        #self.stick()
+        width = 500
+        # Vbox
+        vbox = gtk.VBox(False,3)
+        vbox.set_border_width(3)
+        self.add(vbox)
+
+        eanswer = gtk.Entry()
+        eanswer.set_size_request(width,50)
+        eanswer.set_property('editable', False)
+        eanswer.set_alignment(1.0)
+        fontdesc = pango.FontDescription('Lucida Sans 20')
+        eanswer.modify_font(fontdesc)
+        vbox.add(eanswer)
+
+        asw = gtk.ScrolledWindow()
+        asw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        asw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        asw.set_size_request(width,75)
+        vbox.add(asw)
+
+        eenter = gtk.TextView()
+        ebuffer = eenter.get_buffer()
+        fontenter = pango.FontDescription('Lucida Sans 15')
+        eenter.modify_font(fontenter)
+        asw.add(eenter)
+        eenter.grab_focus()
+
+        esw = gtk.ScrolledWindow()
+        esw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        esw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        esw.set_size_request(width,200)
+        vbox.add(esw)
+
+        estore = gtk.ListStore(str,str)
+        elist = gtk.TreeView(estore)
+        elist.set_size_request(width,200)
+        esw.add(elist)
+
+        estat = gtk.Label()
+        vbox.add(estat)
+        estat.set_text("Select any text to evaluate")
+
+        self.create_column(elist)
+        ebuffer.connect("changed",self.evaluate,eanswer,estore)
+        self.id = eenter.connect("key-press-event",self.enter,ebuffer,eanswer,estore)
+        elist.connect("button-press-event", self.copyexp,ebuffer)
+        elist.connect("cursor-changed", self.selexp,ebuffer,estat,estore)
+        eenter.connect("button-release-event",self.selchange,ebuffer,estore,estat)
+
+        self.show_all()
+
+    def evaluate(self,ebuffer,eanswer,estore):
+        evaltext = ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1])
+        evaltext = self.modifytext(evaltext,estore)
+        try:
+            result = eval(evaltext)
+            eanswer.set_text(str(result))
+            eanswer.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color(65535,65535,65535))
+        except:
+            eanswer.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color(65535,40000,40000))
+    def modifytext(self,evaltext,estore):
+        newtext = evaltext
+        for row in estore:
+            var = estore.get_value(row.iter,0)
+            val = estore.get_value(row.iter,1)
+            newtext = newtext.replace(var,"("+val+")")
+        for item in subs:
+            newtext = newtext.replace(item[0],item[1])
+        newtext = newtext.replace("math.math","math")
+        if newtext != evaltext:
+            newtext = self.modifytext(newtext,estore)
+        return newtext
+    def enter(self,eenter,event,ebuffer,eanswer,estore):
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        if keyname.lower() == "return" or keyname.lower() == "kp_enter":
+            varname = "v" + "%02d" % self.historycount
+            if self.historycount < 100:
+                estore.append([varname,ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1])])
+            ebuffer.set_text(eanswer.get_text())
+            self.historycount +=1
+            eenter.stop_emission("key-press-event")
+        if keyname.lower() == "space":
+            varname = "v" + "%02d" % self.historycount
+            if self.historycount < 100:
+                estore.append([varname,ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1])])
+            ebuffer.set_text("")
+            self.historycount +=1
+            eenter.stop_emission("key-press-event")
+        if keyname.lower() =="b":
+            selbounds = ebuffer.get_selection_bounds()
+            if selbounds:
+                seltext = ebuffer.get_text(selbounds[0],selbounds[1])
+                ebuffer.delete(selbounds[0],selbounds[1])
+                ebuffer.insert(selbounds[0],"(" + seltext + ")")
+                eenter.stop_emission("key-press-event")
+        if keyname.lower() =="c":
+            selbounds = ebuffer.get_selection_bounds()
+            if selbounds:
+                seltext = ebuffer.get_text(selbounds[0],selbounds[1])
+                seltext = self.modifytext(seltext,estore)
+                try:
+                    result = eval(seltext)
+                    ebuffer.delete(selbounds[0],selbounds[1])
+                    ebuffer.insert(selbounds[0],str(result))
+                except:
+                    pass
+                eenter.stop_emission("key-press-event")
+        if keyname.lower() == "escape":
+            if ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1]) == "":
+                gtk.main_quit()
+            else:
+                ebuffer.set_text("")
+
+    def create_column(self, treeView):
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Var", rendererText, text=0)
+        column.set_sort_column_id(0)
+        treeView.append_column(column)
+
+        rendererText = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("History", rendererText, text=1)
+        column.set_sort_column_id(0)
+        treeView.append_column(column)
+
+    def copyexp(self,elist,event,ebuffer):
+        result = elist.get_selection().get_selected()
+        if event.type == gtk.gdk._2BUTTON_PRESS:
+            model, iter = result
+            ebuffer.set_text(ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1]) + "(" + model.get_value(iter,1) + ")")
+    def selexp(self,elist,ebuffer,estat,estore):
+        result = elist.get_selection().get_selected()
+        model, iter = result
+        seltext = model.get_value(iter,0)
+        seltext = self.modifytext(seltext,estore)
+        estat.set_text(str(eval(seltext)))
+    def selchange(self,eenter,event,ebuffer,estore,estat):
+        estat.set_text("Select any text to evaluate")
+        selbounds = ebuffer.get_selection_bounds()
+        print selbounds
+        if selbounds:
+            seltext = ebuffer.get_text(selbounds[0],selbounds[1])
+            seltext = self.modifytext(seltext,estore)
+            try:
+                result = eval(seltext)
+                estat.set_text(str(result))
+            except:
+                estat.set_text("Syntax error in selection")
+calcker()
+gtk.main()
