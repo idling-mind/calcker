@@ -1,6 +1,10 @@
 # Calcker
 A python based calculator
 
+Here is a screenshot of Calcker
+
+![Calcker](/assets/images/calcker.png)
+
 I was bored of using the regular calculator from linux for doing quick calculations. 
 
 These were my problems.
@@ -19,6 +23,10 @@ I read on the web that python interpreter can work as a good calculator. So I ba
 
 The script basically works with the help of an eval function in python. But with few modifications.
 
-Here is a screenshot of Calcker
-
-![Calcker](/assets/images/calcker.png)
+##Feature list
+- Simple interface
+- Live calculation (shows syntax errors if any)
+- History support
+- Quick evaluation of selected text
+- Quick way to add parentheses
+- Variable substitution
