@@ -1,36 +1,35 @@
 #!/usr/bin/python
-# Convert Units
 # Written by Najeem Muhammed
 from __future__ import division
 import gtk
 import math
 import pango
 
-
+# Short forms of python commands that can be substituted 
 subs = [
-	["pi","math.pi"]
+    ["pi","math.pi"]
 ]
 class calcker(gtk.Window):
     def __init__(self):
+        """This function will initialize the calcker window"""
         # Window settings
         super(calcker, self).__init__()
-        self.connect("destroy",gtk.main_quit)
-        self.set_position(gtk.WIN_POS_CENTER)
+        self.connect("destroy",gtk.main_quit) #Quit the main function in case the window is closed.
+        self.set_position(gtk.WIN_POS_CENTER) #Set the window to the center of the screen
         self.set_title("Calcker")
-        self.set_resizable(False)
-        self.stick()
+        self.set_resizable(False) #Non-resizeable
+        self.stick() #Keep the same window across multiple desktops.
         self.historycount = 0
-
+        # Windows icon comes from the gtk stock icon set
         windowicon = self.render_icon(gtk.STOCK_CONVERT, gtk.ICON_SIZE_MENU)
         self.set_icon(windowicon)
-        #self.stick()
         width = 500
         # Vbox
-        vbox = gtk.VBox(False,3)
+        vbox = gtk.VBox(False,3) #The main container for the components
         vbox.set_border_width(3)
         self.add(vbox)
-
-        eanswer = gtk.Entry()
+        
+        eanswer = gtk.Entry() # This is the answerbox
         eanswer.set_size_request(width,50)
         eanswer.set_property('editable', False)
         eanswer.set_alignment(1.0)
