@@ -75,6 +75,7 @@ class calcker(gtk.Window):
         self.show_all()
 
     def evaluate(self,ebuffer,eanswer,estore):
+        """Evaluate the text in eanswer text box"""
         evaltext = ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1])
         evaltext = self.modifytext(evaltext,estore)
         try:
@@ -84,6 +85,7 @@ class calcker(gtk.Window):
         except:
             eanswer.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color(65535,40000,40000))
     def modifytext(self,evaltext,estore):
+        """modify evaltext to include items from the global variable subs as well as any variable as listed in estore"""
         newtext = evaltext
         for row in estore:
             var = estore.get_value(row.iter,0)
@@ -96,7 +98,10 @@ class calcker(gtk.Window):
             newtext = self.modifytext(newtext,estore)
         return newtext
     def enter(self,eenter,event,ebuffer,eanswer,estore):
+        """run on any keypress event"""
         keyname = gtk.gdk.keyval_name(event.keyval)
+        # if enter is pressed, any text in the expression box is evaluated and the answer is substituted in the expression box
+        # The original expression is moved in to the history list
         if keyname.lower() == "return" or keyname.lower() == "kp_enter":
             varname = "v" + "%02d" % self.historycount
             if self.historycount < 100:
@@ -104,6 +109,7 @@ class calcker(gtk.Window):
             ebuffer.set_text(eanswer.get_text())
             self.historycount +=1
             eenter.stop_emission("key-press-event")
+        # on pressing space, any text in expression box is moved to history and expression box is cleared
         if keyname.lower() == "space":
             varname = "v" + "%02d" % self.historycount
             if self.historycount < 100:
@@ -111,6 +117,7 @@ class calcker(gtk.Window):
             ebuffer.set_text("")
             self.historycount +=1
             eenter.stop_emission("key-press-event")
+        # if any text is selected inside expression box and b is pressed, the selected text is surrounded by brackets
         if keyname.lower() =="b":
             selbounds = ebuffer.get_selection_bounds()
             if selbounds:
@@ -118,6 +125,7 @@ class calcker(gtk.Window):
                 ebuffer.delete(selbounds[0],selbounds[1])
                 ebuffer.insert(selbounds[0],"(" + seltext + ")")
                 eenter.stop_emission("key-press-event")
+        # if any text is selected and c is pressed, the selected expression is evaluated
         if keyname.lower() =="c":
             selbounds = ebuffer.get_selection_bounds()
             if selbounds:
@@ -130,6 +138,7 @@ class calcker(gtk.Window):
                 except:
                     pass
                 eenter.stop_emission("key-press-event")
+        # On pressing escape, if the expression box is having any expression, it is cleared else application is quit
         if keyname.lower() == "escape":
             if ebuffer.get_text(ebuffer.get_bounds()[0],ebuffer.get_bounds()[1]) == "":
                 gtk.main_quit()
@@ -159,6 +168,7 @@ class calcker(gtk.Window):
         seltext = self.modifytext(seltext,estore)
         estat.set_text(str(eval(seltext)))
     def selchange(self,eenter,event,ebuffer,estore,estat):
+        """if there is any change in the selection inside expression box"""
         estat.set_text("Select any text to evaluate")
         selbounds = ebuffer.get_selection_bounds()
         print selbounds
