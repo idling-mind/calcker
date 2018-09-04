@@ -23,7 +23,7 @@ I read on the web that python interpreter can work as a good calculator. So I ba
 
 The script basically works with the help of an eval function in python. But with few modifications.
 
-##Feature list
+## Feature list
 - Simple interface
 - Live calculation (shows syntax errors if any)
 - History support
